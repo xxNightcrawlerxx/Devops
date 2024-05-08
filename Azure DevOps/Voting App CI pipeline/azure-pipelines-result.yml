@@ -1,0 +1,49 @@
+trigger:
+  paths:
+    include:
+    - result/*
+resources:
+  repositories:
+  - repository: self
+variables:
+- name: dockerRegistryServiceConnection
+  value: 'e479d150-8429-494d-bb23-013bd7dfde4e'
+- name: imageRepository
+  value: 'resultapp'
+- name: containerRegistry
+  value: 'azdevopscicd.azurecr.io'
+- name: dockerfilePath
+  value: '$(Build.SourcesDirectory)/result/Dockerfile'
+- name: tag
+  value: '$(Build.BuildId)'
+pool:
+  name: 'azureagent'
+stages:
+- stage: Build
+  displayName: Build
+  jobs:
+  - job: Build
+    displayName: Build
+    steps:
+    - task: Docker@2
+      displayName: Build Voting Container Image
+      inputs:
+        containerRegistry: '$(dockerRegistryServiceConnection)'
+        repository: '$(imageRepository)'
+        command: 'build'
+        Dockerfile: 'result/Dockerfile'
+        tags: '$(tag)'
+- stage: Push
+  displayName: Push
+  jobs:
+  - job: Push
+    displayName: Push Voting Container Image
+    steps:
+    - task: Docker@2
+      displayName: Push an image to container registry
+      inputs:
+        containerRegistry: '$(dockerRegistryServiceConnection)'
+        repository: '$(imageRepository)'
+        command: 'push'
+        tags: '$(tag)'
+
